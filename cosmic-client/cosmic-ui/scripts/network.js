@@ -6175,7 +6175,7 @@
                                         label: 'label.dead.peer.detection',
                                         docID: 'helpVPNGatewayDeadPeerDetection',
                                         isBoolean: true,
-                                        isChecked: false
+                                        isChecked: true
                                     },
 
                                     forceencap: {

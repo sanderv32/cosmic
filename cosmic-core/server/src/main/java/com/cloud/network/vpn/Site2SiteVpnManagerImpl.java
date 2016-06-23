@@ -215,7 +215,7 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
 
         Boolean dpd = cmd.getDpd();
         if (dpd == null) {
-            dpd = false;
+            dpd = true;
         }
 
         Boolean encap = cmd.getEncap();
