@@ -2097,14 +2097,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
 
         StartupStorageCommand sscmd = null;
         try {
-
-            final String localStoragePath = getLocalStoragePath();
-            final KvmStoragePool localStoragePool = storagePoolMgr.createStoragePool(getLocalStorageUuid(), "localhost", -1, localStoragePath, "", Filesystem);
-            final long localStoragePoolCapacity = localStoragePool.getCapacity();
-            final long localStoragePoolAvailable = localStoragePool.getAvailable();
-            final String localStoragePoolUuid = localStoragePool.getUuid();
-            final StoragePoolInfo storagePoolInfo =
-                    new StoragePoolInfo(localStoragePoolUuid, privateIp, localStoragePath, localStoragePath, Filesystem, localStoragePoolCapacity, localStoragePoolAvailable);
+            final StoragePoolInfo storagePoolInfo = buildStoragePoolInfo();
 
             sscmd = new StartupStorageCommand();
             sscmd.setPoolInfo(storagePoolInfo);
@@ -2120,6 +2113,15 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         } else {
             return new StartupCommand[]{cmd};
         }
+    }
+
+    protected StoragePoolInfo buildStoragePoolInfo() {
+        final String localStoragePath = getLocalStoragePath();
+        final KvmStoragePool localStoragePool = storagePoolMgr.createStoragePool(getLocalStorageUuid(), "localhost", -1, localStoragePath, "", Filesystem);
+        final long localStoragePoolCapacity = localStoragePool.getCapacity();
+        final long localStoragePoolAvailable = localStoragePool.getAvailable();
+        final String localStoragePoolUuid = localStoragePool.getUuid();
+        return new StoragePoolInfo(localStoragePoolUuid, privateIp, localStoragePath, localStoragePath, Filesystem, localStoragePoolCapacity, localStoragePoolAvailable);
     }
 
     protected StartupRoutingCommand buildStartupRoutingCommand(final String localGateway, final List<Object> info) {
