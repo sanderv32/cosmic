@@ -2092,24 +2092,8 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
 
     @Override
     public StartupCommand[] initialize() {
-
-        final List<Object> info = getHostInfo();
-
-        final Integer cpus = (Integer) info.get(0);
-        final Long speed = (Long) info.get(1);
-        final Long memory = (Long) info.get(2);
-        final Long dom0MinMemory = (Long) info.get(4);
-        final String caps = (String) info.get(3);
-        final StartupRoutingCommand cmd = new StartupRoutingCommand(cpus, speed, memory, dom0MinMemory, caps, getHypervisorType(), HostLocal);
-
-        cmd.setCpuSockets((Integer) info.get(5));
-        fillNetworkInformation(cmd);
+        final StartupRoutingCommand cmd = buildStartupRoutingCommand(localGateway, getHostInfo());
         privateIp = cmd.getPrivateIpAddress();
-        cmd.getHostDetails().putAll(getVersionStrings());
-        cmd.setPool(getPool());
-        cmd.setCluster(getCluster());
-        cmd.setGatewayIpAddress(localGateway);
-        cmd.setIqn(getIqn());
 
         StartupStorageCommand sscmd = null;
         try {
@@ -2136,6 +2120,24 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         } else {
             return new StartupCommand[]{cmd};
         }
+    }
+
+    protected StartupRoutingCommand buildStartupRoutingCommand(final String localGateway, final List<Object> info) {
+        final Integer cpus = (Integer) info.get(0);
+        final Long speed = (Long) info.get(1);
+        final Long memory = (Long) info.get(2);
+        final Long dom0MinMemory = (Long) info.get(4);
+        final String caps = (String) info.get(3);
+        final StartupRoutingCommand cmd = new StartupRoutingCommand(cpus, speed, memory, dom0MinMemory, caps, getHypervisorType(), HostLocal);
+
+        cmd.setCpuSockets((Integer) info.get(5));
+        fillNetworkInformation(cmd);
+        cmd.getHostDetails().putAll(getVersionStrings());
+        cmd.setPool(getPool());
+        cmd.setCluster(getCluster());
+        cmd.setGatewayIpAddress(localGateway);
+        cmd.setIqn(getIqn());
+        return cmd;
     }
 
     private String getZone() {
