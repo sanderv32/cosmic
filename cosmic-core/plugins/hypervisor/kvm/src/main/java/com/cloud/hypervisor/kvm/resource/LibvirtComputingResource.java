@@ -2098,7 +2098,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         return buildStartupCommands(cmd, buildStartupStorageCommand());
     }
 
-    protected StartupCommand[] buildStartupCommands(final StartupRoutingCommand cmd, final StartupStorageCommand sscmd) {
+    private static StartupCommand[] buildStartupCommands(final StartupRoutingCommand cmd, final StartupStorageCommand sscmd) {
         if (sscmd != null) {
             return new StartupCommand[]{cmd, sscmd};
         } else {
@@ -2106,7 +2106,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         }
     }
 
-    protected StartupStorageCommand buildStartupStorageCommand() {
+    private StartupStorageCommand buildStartupStorageCommand() {
         StartupStorageCommand sscmd = null;
         try {
             final StoragePoolInfo storagePoolInfo = buildStoragePoolInfo();
@@ -2122,7 +2122,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         return sscmd;
     }
 
-    protected StoragePoolInfo buildStoragePoolInfo() {
+    private StoragePoolInfo buildStoragePoolInfo() {
         final String localStoragePath = getLocalStoragePath();
         final KvmStoragePool localStoragePool = storagePoolMgr.createStoragePool(getLocalStorageUuid(), "localhost", -1, localStoragePath, "", Filesystem);
         final long localStoragePoolCapacity = localStoragePool.getCapacity();
@@ -2131,7 +2131,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         return new StoragePoolInfo(localStoragePoolUuid, privateIp, localStoragePath, localStoragePath, Filesystem, localStoragePoolCapacity, localStoragePoolAvailable);
     }
 
-    protected StartupRoutingCommand buildStartupRoutingCommand(final String localGateway, final List<Object> info) {
+    private StartupRoutingCommand buildStartupRoutingCommand(final String localGateway, final List<Object> info) {
         final Integer cpus = (Integer) info.get(0);
         final Long speed = (Long) info.get(1);
         final Long memory = (Long) info.get(2);
