@@ -2095,8 +2095,10 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         final StartupRoutingCommand cmd = buildStartupRoutingCommand(localGateway, getHostInfo());
         privateIp = cmd.getPrivateIpAddress();
 
-        final StartupStorageCommand sscmd = buildStartupStorageCommand();
+        return buildStartupCommands(cmd, buildStartupStorageCommand());
+    }
 
+    protected StartupCommand[] buildStartupCommands(final StartupRoutingCommand cmd, final StartupStorageCommand sscmd) {
         if (sscmd != null) {
             return new StartupCommand[]{cmd, sscmd};
         } else {
