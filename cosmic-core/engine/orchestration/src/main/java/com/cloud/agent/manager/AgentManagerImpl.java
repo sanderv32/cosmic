@@ -1407,6 +1407,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             final Answer[] answers = new Answer[cmds.length];
             for (int i = 0; i < cmds.length; i++) {
                 cmd = cmds[i];
+                s_logger.debug("Processing command {}", cmd.toString());
                 Answer answer = null;
                 if (cmd instanceof StartupRoutingCommand) {
                     final StartupRoutingCommand startup = (StartupRoutingCommand) cmd;
