@@ -20,6 +20,8 @@ import static com.cloud.hypervisor.kvm.resource.LibvirtComputingResourceProperti
 import static com.cloud.hypervisor.kvm.resource.LibvirtComputingResourceProperties.Constants.SCRIPT_SECURITY_GROUP;
 import static com.cloud.hypervisor.kvm.resource.LibvirtComputingResourceProperties.Constants.SCRIPT_UNAME;
 import static com.cloud.hypervisor.kvm.resource.LibvirtComputingResourceProperties.Constants.SCRIPT_VERSIONS;
+import static com.cloud.network.Networks.RouterPrivateIpStrategy.HostLocal;
+import static com.cloud.storage.Storage.StoragePoolType.Filesystem;
 
 import static java.util.UUID.randomUUID;
 
@@ -33,6 +35,7 @@ import com.cloud.agent.api.SetupGuestNetworkCommand;
 import com.cloud.agent.api.StartupCommand;
 import com.cloud.agent.api.StartupRoutingCommand;
 import com.cloud.agent.api.StartupStorageCommand;
+import com.cloud.agent.api.StoragePoolInfo;
 import com.cloud.agent.api.VmDiskStatsEntry;
 import com.cloud.agent.api.VmStatsEntry;
 import com.cloud.agent.api.routing.IpAssocCommand;
@@ -85,7 +88,6 @@ import com.cloud.hypervisor.kvm.storage.KvmStoragePool;
 import com.cloud.hypervisor.kvm.storage.KvmStoragePoolManager;
 import com.cloud.hypervisor.kvm.storage.KvmStorageProcessor;
 import com.cloud.network.Networks.BroadcastDomainType;
-import com.cloud.network.Networks.RouterPrivateIpStrategy;
 import com.cloud.network.Networks.TrafficType;
 import com.cloud.resource.ServerResource;
 import com.cloud.resource.ServerResourceBase;
@@ -1561,7 +1563,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
             return "CLVM";
         } else if ((poolType == StoragePoolType.NetworkFilesystem
                 || poolType == StoragePoolType.SharedMountPoint
-                || poolType == StoragePoolType.Filesystem
+                || poolType == Filesystem
                 || poolType == StoragePoolType.Gluster)
                 && volFormat == PhysicalDiskFormat.QCOW2) {
             return "QCOW2";
@@ -2093,9 +2095,13 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
 
         final List<Object> info = getHostInfo();
 
-        final StartupRoutingCommand cmd = new StartupRoutingCommand((Integer) info.get(0), (Long) info.get(1),
-                (Long) info.get(2), (Long) info.get(4), (String) info.get(3), getHypervisorType(),
-                RouterPrivateIpStrategy.HostLocal);
+        final Integer cpus = (Integer) info.get(0);
+        final Long speed = (Long) info.get(1);
+        final Long memory = (Long) info.get(2);
+        final Long dom0MinMemory = (Long) info.get(4);
+        final String caps = (String) info.get(3);
+        final StartupRoutingCommand cmd = new StartupRoutingCommand(cpus, speed, memory, dom0MinMemory, caps, getHypervisorType(), HostLocal);
+
         cmd.setCpuSockets((Integer) info.get(5));
         fillNetworkInformation(cmd);
         privateIp = cmd.getPrivateIpAddress();
@@ -2109,19 +2115,20 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         try {
 
             final String localStoragePath = getLocalStoragePath();
-            final KvmStoragePool localStoragePool = storagePoolMgr.createStoragePool(getLocalStorageUuid(), "localhost", -1,
-                    localStoragePath, "", StoragePoolType.Filesystem);
-            final com.cloud.agent.api.StoragePoolInfo pi = new com.cloud.agent.api.StoragePoolInfo(localStoragePool.getUuid(),
-                    cmd.getPrivateIpAddress(), localStoragePath, localStoragePath,
-                    StoragePoolType.Filesystem, localStoragePool.getCapacity(), localStoragePool.getAvailable());
+            final KvmStoragePool localStoragePool = storagePoolMgr.createStoragePool(getLocalStorageUuid(), "localhost", -1, localStoragePath, "", Filesystem);
+            final long localStoragePoolCapacity = localStoragePool.getCapacity();
+            final long localStoragePoolAvailable = localStoragePool.getAvailable();
+            final String localStoragePoolUuid = localStoragePool.getUuid();
+            final StoragePoolInfo storagePoolInfo =
+                    new StoragePoolInfo(localStoragePoolUuid, privateIp, localStoragePath, localStoragePath, Filesystem, localStoragePoolCapacity, localStoragePoolAvailable);
 
             sscmd = new StartupStorageCommand();
-            sscmd.setPoolInfo(pi);
-            sscmd.setGuid(pi.getUuid());
+            sscmd.setPoolInfo(storagePoolInfo);
+            sscmd.setGuid(storagePoolInfo.getUuid());
             sscmd.setDataCenter(getZone());
             sscmd.setResourceType(Storage.StorageResourceType.STORAGE_POOL);
         } catch (final CloudRuntimeException e) {
-            logger.debug("Unable to initialize local storage pool: " + e);
+            logger.debug("Unable to initialize local storage pool", e);
         }
 
         if (sscmd != null) {
