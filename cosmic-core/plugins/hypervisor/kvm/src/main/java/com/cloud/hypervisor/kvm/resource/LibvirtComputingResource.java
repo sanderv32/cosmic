@@ -2119,6 +2119,9 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         } catch (final CloudRuntimeException e) {
             logger.debug("Unable to initialize local storage pool", e);
         }
+
+        logger.debug("Built command: {}", sscmd.toString());
+
         return sscmd;
     }
 
@@ -2146,6 +2149,9 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         cmd.setCluster(getCluster());
         cmd.setGatewayIpAddress(localGateway);
         cmd.setIqn(getIqn());
+
+        logger.debug("Built command: {}", cmd.toString());
+
         return cmd;
     }
 

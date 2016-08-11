@@ -2,6 +2,9 @@ package com.cloud.agent.api;
 
 import com.cloud.host.Host;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+
 public class StartupCommand extends Command {
     Host.Type type;
     String dataCenter;
@@ -266,5 +269,10 @@ public class StartupCommand extends Command {
     @Override
     public boolean executeInSequence() {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }

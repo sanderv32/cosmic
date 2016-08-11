@@ -76,7 +76,7 @@ public abstract class Command {
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return this.getClass().getName();
     }
 
