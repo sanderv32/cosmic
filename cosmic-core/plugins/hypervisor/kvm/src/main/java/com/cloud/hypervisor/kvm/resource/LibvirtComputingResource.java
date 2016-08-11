@@ -2095,6 +2095,16 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         final StartupRoutingCommand cmd = buildStartupRoutingCommand(localGateway, getHostInfo());
         privateIp = cmd.getPrivateIpAddress();
 
+        final StartupStorageCommand sscmd = buildStartupStorageCommand();
+
+        if (sscmd != null) {
+            return new StartupCommand[]{cmd, sscmd};
+        } else {
+            return new StartupCommand[]{cmd};
+        }
+    }
+
+    protected StartupStorageCommand buildStartupStorageCommand() {
         StartupStorageCommand sscmd = null;
         try {
             final StoragePoolInfo storagePoolInfo = buildStoragePoolInfo();
@@ -2107,12 +2117,7 @@ public class LibvirtComputingResource extends ServerResourceBase implements Serv
         } catch (final CloudRuntimeException e) {
             logger.debug("Unable to initialize local storage pool", e);
         }
-
-        if (sscmd != null) {
-            return new StartupCommand[]{cmd, sscmd};
-        } else {
-            return new StartupCommand[]{cmd};
-        }
+        return sscmd;
     }
 
     protected StoragePoolInfo buildStoragePoolInfo() {
