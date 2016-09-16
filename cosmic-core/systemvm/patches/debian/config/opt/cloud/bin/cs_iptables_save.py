@@ -185,6 +185,7 @@ class Tables(UserDict):
                         if key == "filter" and elem.startswith("INPUT",3):
                             # disabled logging due to kernel bug in 3.2
                             #print("-A INPUT -m limit --limit 2/second -j LOG --log-prefix \"iptables denied: [input] \" --log-level 4", file=f)
+                            pass
                     print("COMMIT", file=f)
 
     def put_into_tables(self, line):
