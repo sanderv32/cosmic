@@ -424,6 +424,8 @@ class CsIP:
             guestNetworkCidr = self.address['network']
             self.fw.append(["filter", "", "-A FORWARD -d %s -o %s -j ACL_INBOUND_%s" %
                             (guestNetworkCidr, self.dev, self.dev)])
+            self.fw.append(["filter", "", "-A OUTPUT -d %s -o %s -j ACL_INBOUND_%s" %
+                            (guestNetworkCidr, self.dev, self.dev)])
             self.fw.append(
                 ["filter", "front", "-A ACL_INBOUND_%s -d 224.0.0.18/32 -j ACCEPT" % self.dev])
             self.fw.append(
@@ -480,6 +482,7 @@ class CsIP:
 
         self.fw.append(["filter", "", "-P INPUT DROP"])
         self.fw.append(["filter", "", "-P FORWARD DROP"])
+        self.fw.append(["filter", "", "-P OUTPUT DROP"])
 
     def post_config_change(self, method):
         route = CsRoute()
