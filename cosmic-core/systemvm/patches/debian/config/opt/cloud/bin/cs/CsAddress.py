@@ -419,6 +419,7 @@ class CsIP:
         self.fw.append(["", "front", "-A OUTPUT -j NETWORK_STATS"])
 
         self.fw.append(["filter", "", "-A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT"])
+        self.fw.append(["filter", "", "-A OUTPUT -m state --state RELATED,ESTABLISHED -j ACCEPT"])
 
         if self.get_type() in ["guest"]:
             guestNetworkCidr = self.address['network']
@@ -426,46 +427,36 @@ class CsIP:
                             (guestNetworkCidr, self.dev, self.dev)])
             self.fw.append(["filter", "", "-A OUTPUT -d %s -o %s -j ACL_INBOUND_%s" %
                             (guestNetworkCidr, self.dev, self.dev)])
-            self.fw.append(
-                ["filter", "front", "-A ACL_INBOUND_%s -d 224.0.0.18/32 -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["filter", "front", "-A ACL_INBOUND_%s -d 225.0.0.50/32 -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["mangle", "front", "-A ACL_OUTBOUND_%s -d 225.0.0.50/32 -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["mangle", "front", "-A ACL_OUTBOUND_%s -d 224.0.0.18/32 -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["filter", "", "-A INPUT -i %s -p udp -m udp --dport 67 -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["filter", "", "-A INPUT -i %s -p udp -m udp --dport 53 -s %s -j ACCEPT" % (
-                    self.dev, guestNetworkCidr)])
-            self.fw.append(
-                ["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 53 -s %s -j ACCEPT" % (
-                    self.dev, guestNetworkCidr)])
-
-            self.fw.append(
-                ["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 80 -m state --state NEW -j ACCEPT" % self.dev])
-            self.fw.append(
-                ["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 8080 -m state --state NEW -j ACCEPT" % self.dev])
+            # adding logging here for all ingress from locally generated traffic at once
+            self.fw.append(["filter", "", "-A OUTPUT  -d %s -o %s -m limit --limit 2/second -j LOG  --log-prefix \"iptables denied: [output]\" --log-level 4" %
+                            (guestNetworkCidr, self.dev)])
+            self.fw.append(["filter", "", "-A OUTPUT -d %s -o %s -j DROP" % (guestNetworkCidr, self.dev)])
+            self.fw.append(["filter", "front", "-A ACL_INBOUND_%s -d 224.0.0.18/32 -j ACCEPT" % self.dev])
+            self.fw.append(["filter", "front", "-A ACL_INBOUND_%s -d 225.0.0.50/32 -j ACCEPT" % self.dev])
+            self.fw.append(["filter", "front", "-A ACL_INBOUND_%s -d %s -p udp -m udp --dport 68 -j ACCEPT" % (self.dev,guestNetworkCidr)])
+            self.fw.append(["mangle", "front", "-A ACL_OUTBOUND_%s -d 225.0.0.50/32 -j ACCEPT" % self.dev])
+            self.fw.append(["mangle", "front", "-A ACL_OUTBOUND_%s -d 224.0.0.18/32 -j ACCEPT" % self.dev])
+            self.fw.append(["filter", "", "-A INPUT -i %s -p udp -m udp --dport 67 -j ACCEPT" % self.dev])
+            self.fw.append(["filter", "", "-A INPUT -i %s -p udp -m udp --dport 53 -s %s -j ACCEPT" %
+                            (self.dev, guestNetworkCidr)])
+            self.fw.append(["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 53 -s %s -j ACCEPT" %
+                            (self.dev, guestNetworkCidr)])
+            self.fw.append(["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 80 -m state --state NEW -j ACCEPT" % self.dev])
+            self.fw.append(["filter", "", "-A INPUT -i %s -p tcp -m tcp --dport 8080 -m state --state NEW -j ACCEPT" % self.dev])
             self.fw.append(["mangle", "", "-A PREROUTING -m state --state NEW -i %s -s %s ! -d %s -j ACL_OUTBOUND_%s" % (
                 self.dev, self.address['network'], self.address['network'], self.dev)])
             self.fw.append(["", "front", "-A NETWORK_STATS_%s -o %s -s %s" %
                             ("eth1", "eth1", guestNetworkCidr)])
             self.fw.append(["", "front", "-A NETWORK_STATS_%s -o %s -d %s" %
                             ("eth1", "eth1", guestNetworkCidr)])
-            self.fw.append(["nat", "front",
-                            "-A POSTROUTING -s %s -o %s -j SNAT --to-source %s" %
+            self.fw.append(["nat", "front", "-A POSTROUTING -s %s -o %s -j SNAT --to-source %s" %
                             (guestNetworkCidr, self.dev, self.address['public_ip'])])
 
         if self.get_type() in ["public"]:
-            self.fw.append(
-                ["mangle", "", "-A FORWARD -j VPN_STATS_%s" % self.dev])
-            self.fw.append(
-                ["mangle", "", "-A VPN_STATS_%s -o %s -m mark --mark 0x525/0xffffffff" % (self.dev, self.dev)])
-            self.fw.append(
-                ["mangle", "", "-A VPN_STATS_%s -i %s -m mark --mark 0x524/0xffffffff" % (self.dev, self.dev)])
-            self.fw.append(
-                ["", "front", "-A FORWARD -j NETWORK_STATS_eth1"])
+            self.fw.append(["mangle", "", "-A FORWARD -j VPN_STATS_%s" % self.dev])
+            self.fw.append(["mangle", "", "-A VPN_STATS_%s -o %s -m mark --mark 0x525/0xffffffff" % (self.dev, self.dev)])
+            self.fw.append(["mangle", "", "-A VPN_STATS_%s -i %s -m mark --mark 0x524/0xffffffff" % (self.dev, self.dev)])
+            self.fw.append(["", "front", "-A FORWARD -j NETWORK_STATS_eth1"])
 
         self.fw.append(["", "", "-A NETWORK_STATS -i eth0 -o eth2 -p tcp"])
         self.fw.append(["", "", "-A NETWORK_STATS -i eth2 -o eth0 -p tcp"])
@@ -482,7 +473,6 @@ class CsIP:
 
         self.fw.append(["filter", "", "-P INPUT DROP"])
         self.fw.append(["filter", "", "-P FORWARD DROP"])
-        self.fw.append(["filter", "", "-P OUTPUT DROP"])
 
     def post_config_change(self, method):
         route = CsRoute()
@@ -520,7 +510,7 @@ class CsIP:
                 vpccidr = cmdline.get_vpccidr()
                 self.fw.append(
                     ["filter", "", "-A FORWARD -s %s ! -d %s -j ACCEPT" % (vpccidr, vpccidr)])
-                # adding logging here for all ingress traffic at once
+                # adding logging here for all ingress from forwarded traffic at once
                 self.fw.append(
                     ["filter", "", "-A FORWARD -m limit --limit 2/second -j LOG  --log-prefix \"iptables denied: [ingress]\" --log-level 4"])
                 self.fw.append(
