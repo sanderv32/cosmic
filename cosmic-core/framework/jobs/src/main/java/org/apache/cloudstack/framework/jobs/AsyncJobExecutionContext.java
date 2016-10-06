@@ -100,10 +100,6 @@ public class AsyncJobExecutionContext {
         return _job.getSyncSource();
     }
 
-    public void resetSyncSource() {
-        _job.setSyncSource(null);
-    }
-
     public boolean isJobDispatchedBy(final String jobDispatcherName) {
         assert (jobDispatcherName != null);
         if (_job != null && _job.getDispatcher() != null && _job.getDispatcher().equals(jobDispatcherName)) {
@@ -113,41 +109,9 @@ public class AsyncJobExecutionContext {
         return false;
     }
 
-    public void completeAsyncJob(final JobInfo.Status jobStatus, final int resultCode, final String resultObject) {
-        assert (_job != null);
-        s_jobMgr.completeAsyncJob(_job.getId(), jobStatus, resultCode, resultObject);
-    }
-
-    public void updateAsyncJobStatus(final int processStatus, final String resultObject) {
-        assert (_job != null);
-        s_jobMgr.updateAsyncJobStatus(_job.getId(), processStatus, resultObject);
-    }
-
-    public void updateAsyncJobAttachment(final String instanceType, final Long instanceId) {
-        assert (_job != null);
-        s_jobMgr.updateAsyncJobAttachment(_job.getId(), instanceType, instanceId);
-    }
-
-    public void logJobJournal(final AsyncJob.JournalType journalType, final String journalText, final String journalObjJson) {
-        assert (_job != null);
-        s_jobMgr.logJobJournal(_job.getId(), journalType, journalText, journalObjJson);
-    }
-
-    public void log(final Logger logger, final String journalText) {
-        s_jobMgr.logJobJournal(_job.getId(), AsyncJob.JournalType.SUCCESS, journalText, null);
-        logger.debug(journalText);
-    }
-
     public void joinJob(final long joinJobId) {
         assert (_job != null);
         s_jobMgr.joinJob(_job.getId(), joinJobId);
-    }
-
-    public void joinJob(final long joinJobId, final String wakeupHandler, final String wakeupDispatcher,
-                        final String[] wakeupTopcisOnMessageBus, final long wakeupIntervalInMilliSeconds, final long timeoutInMilliSeconds) {
-        assert (_job != null);
-        s_jobMgr.joinJob(_job.getId(), joinJobId, wakeupHandler, wakeupDispatcher, wakeupTopcisOnMessageBus,
-                wakeupIntervalInMilliSeconds, timeoutInMilliSeconds);
     }
 
     //
@@ -185,16 +149,5 @@ public class AsyncJobExecutionContext {
                 throw new RuntimeException("Job " + joinedJobId + " failed without providing an error object");
             }
         }
-    }
-
-    public void completeJoin(final JobInfo.Status joinStatus, final String joinResult) {
-        assert (_job != null);
-        s_jobMgr.completeJoin(_job.getId(), joinStatus, joinResult);
-    }
-
-    public void completeJobAndJoin(final JobInfo.Status joinStatus, final String joinResult) {
-        assert (_job != null);
-        s_jobMgr.completeJoin(_job.getId(), joinStatus, joinResult);
-        s_jobMgr.completeAsyncJob(_job.getId(), joinStatus, 0, null);
     }
 }
