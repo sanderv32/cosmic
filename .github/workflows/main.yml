@@ -39,6 +39,7 @@ jobs:
       - name: Build with Maven
         run: mvn -B -f pom.xml clean install -U -Psystemvm -Psonar-ci-cosmic -Dcosmic.dir="${GITHUB_WORKSPACE}" -Dlog.file.management.server="/var/log/cosmic/management/management.log" -Dlog.rotation.management.server="/var/log/cosmic/management/management-%d{yyyy-MM-dd}.log.gz" -Dcosmic.tests.mockdb=true
   prepare-setup-infra:
+    needs: maven-build
     runs-on: self-hosted
     steps:
       - name: Prepare infrastructure for integration tests
@@ -48,11 +49,13 @@ jobs:
       - name: Deploy datacenter
         run: echo "TODO"
   tests:
+    needs: prepare-setup-infra
     runs-on: self-hosted
     steps:
       - name: Run integration tests
         run: echo "TODO"
   reporting:
+    needs: tests
     runs-on: self-hosted
     steps:
       - name: Sonar analysis
