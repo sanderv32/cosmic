@@ -42,8 +42,15 @@ jobs:
     needs: maven-build
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: MissionCriticalCloud/bubble-toolkit
+          path: shared
       - name: Prepare infrastructure for integration tests
-        run: echo "TODO"
+        run: |
+          set
+          ls
+          echo "TODO"
       - name: Setup infrastructure for integration tests
         run: echo "TODO"
       - name: Deploy datacenter
