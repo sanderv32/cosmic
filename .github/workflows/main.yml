@@ -30,7 +30,7 @@ on:
     branches: [ master ]
 
 jobs:
-  9997-maven-build:
+  9997_maven_build:
 
     runs-on: ubuntu-latest
 
