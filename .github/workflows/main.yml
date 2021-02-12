@@ -51,6 +51,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Run integration tests
+        run: echo "TODO"
   reporting:
     runs-on: self-hosted
     steps:
