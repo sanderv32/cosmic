@@ -42,7 +42,7 @@ jobs:
           java-version: 1.8
       - name: Setup beta-nexus
         run: |
-          mkdir -p /root/.m2
-          echo "<settings><profiles><profile><id>beta-nexus</id><repositories><repository><id>beta-nexus</id><name>beta-nexus</name><url>https://beta-nexus.mcc.schubergphilis.com/content/groups/public</url></repository></repositories></profile></profiles><activeProfiles><activeProfile>beta-nexus</activeProfile></activeProfiles></settings>" | tee /root/.m2/settings.xml
+          mkdir -p ~/.m2
+          echo "<settings><profiles><profile><id>beta-nexus</id><repositories><repository><id>beta-nexus</id><name>beta-nexus</name><url>https://beta-nexus.mcc.schubergphilis.com/content/groups/public</url></repository></repositories></profile></profiles><activeProfiles><activeProfile>beta-nexus</activeProfile></activeProfiles></settings>" | tee ~/.m2/settings.xml
       - name: Build with Maven
         run: mvn -B -f pom.xml clean install -U -Psystemvm -Psonar-ci-cosmic -Dcosmic.dir="${GITHUB_WORKSPACE}" -Dlog.file.management.server="/var/log/cosmic/management/management.log" -Dlog.rotation.management.server="/var/log/cosmic/management/management-%d{yyyy-MM-dd}.log.gz" -Dcosmic.tests.mockdb=true
