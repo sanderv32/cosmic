@@ -1,33 +1,7 @@
 name: cosmic-pull-request-build
 
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to be built'
-        required: false
-        default: 'master'
-      tests:
-        description: 'Tests to run'
-        required: false
-        default: |
-          smoke/test_delete_account.py
-          smoke/test_ip_exclusion_list.py
-          smoke/test_loadbalance.py
-          smoke/test_password_and_dnsmasq_service.py
-          smoke/test_privategw_acl.py
-          smoke/test_public_ip_acl.py
-          smoke/test_release_ip.py
-          smoke/test_router_ip_tables_policies.py
-          smoke/test_vpc_ip_tables_policies.py
-          smoke/test_ssvm.py
-          smoke/test_vpc_redundant.py
-          smoke/test_vpc_router_nics.py
-          smoke/test_vpc_vpn.py
-  push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
 
 jobs:
   maven-build:
