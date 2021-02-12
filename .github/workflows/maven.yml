@@ -1,0 +1,21 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Build with Maven
+      run: mvn -B -f pom.xml clean install deploy -U -Psystemvm -Psonar-ci-cosmic -Dcosmic.dir="${CUSTOM_WORKSPACE}" -Dlog.file.management.server="/var/log/cosmic/management/management.log" -Dlog.rotation.management.server="/var/log/cosmic/management/management-%d{yyyy-MM-dd}.log.gz" -Dcosmic.tests.mockdb=true
