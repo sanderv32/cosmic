@@ -1,0 +1,57 @@
+name: Java CI with Maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'branch'
+        required: false
+        default: 'master'
+      tests:
+        description: 'Integration tests'
+        required: false
+        default: |
+          smoke/test_delete_account.py
+          smoke/test_ip_exclusion_list.py
+          smoke/test_loadbalance.py
+          smoke/test_password_and_dnsmasq_service.py
+          smoke/test_privategw_acl.py
+          smoke/test_public_ip_acl.py
+          smoke/test_release_ip.py
+          smoke/test_router_ip_tables_policies.py
+          smoke/test_vpc_ip_tables_policies.py
+          smoke/test_ssvm.py
+          smoke/test_vpc_redundant.py
+          smoke/test_vpc_router_nics.py
+          smoke/test_vpc_vpn.py
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  9997-maven-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Download Maven
+        run: |
+          curl -sL https://www-eu.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.zip -o maven.zip
+          apt-get update
+          apt-get -y install unzip mkisofs
+          yes | unzip -d /usr/share maven.zip || true
+          rm maven.zip
+          ln -sf /usr/share/apache-maven-3.6.3/bin/mvn /usr/bin/mvn
+          echo "M2_HOME=/usr/share/apache-maven-3.6.3" | tee -a /etc/environment
+      - name: Setup beta-nexus
+        run: |
+          mkdir -p /root/.m2
+          echo "<settings><profiles><profile><id>beta-nexus</id><repositories><repository><id>beta-nexus</id><name>beta-nexus</name><url>https://beta-nexus.mcc.schubergphilis.com/content/groups/public</url></repository></repositories></profile></profiles><activeProfiles><activeProfile>beta-nexus</activeProfile></activeProfiles></settings>" | tee /root/.m2/settings.xml
+      - name: Build with Maven
+        run: mvn -B -f pom.xml clean install -U -Psystemvm -Psonar-ci-cosmic -Dcosmic.dir="${GITHUB_WORKSPACE}" -Dlog.file.management.server="/var/log/cosmic/management/management.log" -Dlog.rotation.management.server="/var/log/cosmic/management/management-%d{yyyy-MM-dd}.log.gz" -Dcosmic.tests.mockdb=true
