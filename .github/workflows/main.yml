@@ -40,6 +40,8 @@ jobs:
         run: mvn -B -f pom.xml clean install -U -Psystemvm -Psonar-ci-cosmic -Dcosmic.dir="${GITHUB_WORKSPACE}" -Dlog.file.management.server="/var/log/cosmic/management/management.log" -Dlog.rotation.management.server="/var/log/cosmic/management/management-%d{yyyy-MM-dd}.log.gz" -Dcosmic.tests.mockdb=true
   prepare-setup-infra:
     needs: maven-build
+    env:
+      MARVIN_CONFIG_FILE: shared/marvin/mct-zone1-cs1-kvm1-kvm2.cfg
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
@@ -47,10 +49,7 @@ jobs:
           repository: MissionCriticalCloud/bubble-toolkit
           path: shared
       - name: Prepare infrastructure for integration tests
-        run: |
-          set
-          ls
-          echo "TODO"
+        run: bash -x shared/ci/ci-prepare-infra.sh -m ${MARVIN_CONFIG_FILE}
       - name: Setup infrastructure for integration tests
         run: echo "TODO"
       - name: Deploy datacenter
@@ -60,7 +59,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Run integration tests
-        run: echo "TODO"
+        run: echo "$${{ github.evetns.inputs.tests }}"
   reporting:
     needs: tests
     runs-on: self-hosted
